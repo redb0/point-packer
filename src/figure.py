@@ -7,10 +7,11 @@ class Figure:
 
     Атрибуты класса:
         num_points      : количество точек многоугольника
+        points          : координаты точек многоугольника
         method_generate : способ первой генерации точек на плоскости
                           (рандом или последовательность точек на прямой)
     Методы класса:
-        choice_method_generate():
+        generate():
             Генерирует точки по заданному методу
         generate_seq():
             Генерация точек на прямой
@@ -25,15 +26,19 @@ class Figure:
 
     def __init__(self, num_points, method_generate='r'):
         self.num_points = num_points
+        self.points = []
         self.method_generate = method_generate
-        self.choice_method_generate()
+        self.generate()
 
-    def choice_method_generate(self):
+    def generate(self):
         """ Генерирует точки по заданному методу """
-        if self.method_generate == 'r':
-            self.points = self.random_generate()
-        else:
-            self.points = self.generate_seq()
+        flag = False
+        while not flag:
+            if self.method_generate == 'r':
+                self.points = self.random_generate()
+            else:
+                self.points = self.generate_seq()
+            flag = self.check_distance()
 
     def generate_seq(self):
         """ Генерация точек на прямой
