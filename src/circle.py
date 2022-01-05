@@ -1,6 +1,7 @@
 import math
 
 from figure import Figure
+from visualization import vizualizate
 
 
 class Circle:
@@ -50,5 +51,14 @@ class Circle:
         return self.radius ** 2 * math.pi
 
     def check_points(self):
-        """ Проверять на попадание  в окружность все точки """
-        pass
+        """ Проверять на попадание в окружность всех точек """
+        delta_x = self.center[0] + self.radius
+        delta_y = self.center[1] + self.radius
+        count = 0
+        for point in self.figure.points:
+            if point[0] > delta_x:
+                point[0] = round(point[0] - (point[0] - delta_x), 0)
+                vizualizate(self.figure.points, self.center, self.radius)
+            elif point[1] > delta_y:
+                point[1] = round(point[1] - (point[1] - delta_y), 0)
+                vizualizate(self.figure.points, self.center, self.radius)

@@ -27,6 +27,9 @@ class GeneticAlgorithm:
             border = self.num_agents // 2
             # пересчитываем популяцию и остальные параметры
             self.circles = self.circles[:border]
+            for circle in self.circles:
+                # после этого ничего не изменяется
+                circle.check_points()
             self.population = [circle.figure for circle in self.circles]
             # создаем новое поколение
             # рандомно выбираем индексы пар для слияния
