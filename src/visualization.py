@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 
 def vizualizate(points, center, radius):
+    """ Визуализация точек и окружности """
     x = [x for x, y in points]
     y = [y for x, y in points]
     fig, ax = plt.subplots()
