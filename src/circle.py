@@ -48,3 +48,7 @@ class Circle:
         :return: площадь окружности
         """
         return self.radius ** 2 * math.pi
+
+    def check_points(self):
+        """ Проверять на попадание  в окружность все точки """
+        pass

@@ -24,11 +24,12 @@ class Figure:
             Поиск двух наиболее удаленных друг от друга точек
     """
 
-    def __init__(self, num_points, method_generate='r'):
+    def __init__(self, num_points, method_generate='r', points=None):
         self.num_points = num_points
-        self.points = []
+        self.points = points
         self.method_generate = method_generate
-        self.generate()
+        if self.points is None:
+            self.generate()
 
     def generate(self):
         """ Генерирует точки по заданному методу """
