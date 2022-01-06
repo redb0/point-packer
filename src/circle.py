@@ -27,7 +27,10 @@ class Circle:
         self.figure = figure
         self.radius = self.calc_radius()
         self.center = self.calc_center()
-        self.area = self.calc_area()
+
+    @property
+    def area(self):
+        return self.radius ** 2 * math.pi
 
     def calc_radius(self):
         """ Расчет радиуса окружности
@@ -43,12 +46,6 @@ class Circle:
         points, _ = self.figure.search_point()
         return ((points[0][0] + points[1][0]) / 2,
                 (points[0][1] + points[1][1]) / 2)
-
-    def calc_area(self):
-        """ Расчет площади окружности
-        :return: площадь окружности
-        """
-        return self.radius ** 2 * math.pi
 
     def check_points(self):
         """ Проверять на попадание в окружность всех точек """
