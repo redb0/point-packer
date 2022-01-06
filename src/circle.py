@@ -54,17 +54,10 @@ class Circle:
         for point in self.figure.points:
             distance = np.linalg.norm(point - self.center)
             if distance > self.radius:
-                x = abs(point[0] - self.center[0])
-                y = abs(point[1] - self.center[1])
+                x, y = abs(point - self.center)
                 if x > y:
-                    if point[0] < self.center[0]:
-                        point[0] += 1
-                    else:
-                        point[0] -= 1
+                    point[0] += 1 if point[0] < self.center[0] else -1
                 else:
-                    if point[1] < self.center[1]:
-                        point[1] += 1
-                    else:
-                        point[1] -= 1
+                    point[1] += 1 if point[1] < self.center[1] else -1
                 flag = False
         return flag

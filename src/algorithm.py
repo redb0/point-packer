@@ -8,10 +8,11 @@ from visualization import vizualizate
 
 class GeneticAlgorithm:
 
-    def __init__(self, max_iter, num_points, num_agents):
+    def __init__(self, max_iter, num_points, num_agents, draw=False):
         self.max_iter = max_iter
         self.num_points = num_points
         self.num_agents = num_agents
+        self.draw = draw
         self.population = []
         self.circles = []
 
@@ -30,9 +31,10 @@ class GeneticAlgorithm:
         for _ in range(self.max_iter):
             self.selection()
             self.crossing()
-            for circle in self.circles[:2]:
-                print(circle.area)
-                vizualizate(circle.figure.points, circle.center, circle.radius)
+            if self.draw:
+                for circle in self.circles[:2]:
+                    vizualizate(circle.figure.points, circle.center, circle.radius)
+        print(f"Минимальная площадь - {self.circles[0].area}")
 
     def selection(self):
         # выбираем самых перспективных агентов
@@ -66,11 +68,11 @@ class GeneticAlgorithm:
         for idx in indexes:
             parent1 = list(self.population[idx[0]].points)
             parent2 = list(self.population[idx[1]].points)
-            child.append(parent1[0:right] + parent2[right:])
-            child.append(parent2[0:right] + parent1[right:])
+            child.extend([parent1[:right] + parent2[right:],
+                         parent2[:right] + parent1[right:]])
         self.population = [Figure(self.num_points, points=el) for el in child]
         # проверяем уникальность расстояний, удаляем неподходящие
         # в планах делать над ними мутацию, уменьшать координаты
-        self.population = [agent for agent in self.population if agent.check_distance() is True]
+        self.population = [agent for agent in self.population if agent.check_distance()]
         self.population = parents + self.population
         self.circles = self.get_circles()
