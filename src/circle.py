@@ -31,10 +31,6 @@ class Circle:
     def area(self):
         return self.radius ** 2 * math.pi
 
-    @area.setter
-    def area(self):
-        return self.area
-
     def calc_radius(self):
         """ Расчет радиуса окружности
         :return: радиус окружности
