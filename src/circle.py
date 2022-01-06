@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 from figure import Figure
 from visualization import vizualizate
@@ -49,13 +50,21 @@ class Circle:
 
     def check_points(self):
         """ Проверять на попадание в окружность всех точек """
-        delta_x = self.center[0] + self.radius
-        delta_y = self.center[1] + self.radius
-        count = 0
+        flag = True
         for point in self.figure.points:
-            if point[0] > delta_x:
-                point[0] = round(point[0] - (point[0] - delta_x), 0)
-                vizualizate(self.figure.points, self.center, self.radius)
-            elif point[1] > delta_y:
-                point[1] = round(point[1] - (point[1] - delta_y), 0)
-                vizualizate(self.figure.points, self.center, self.radius)
+            distance = np.linalg.norm(point - self.center)
+            if distance > self.radius:
+                x = abs(point[0] - self.center[0])
+                y = abs(point[1] - self.center[1])
+                if x > y:
+                    if point[0] < self.center[0]:
+                        point[0] += 1
+                    else:
+                        point[0] -= 1
+                else:
+                    if point[1] < self.center[1]:
+                        point[1] += 1
+                    else:
+                        point[1] -= 1
+                flag = False
+        return flag
