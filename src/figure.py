@@ -55,7 +55,8 @@ class Figure:
         size = 0
         for pair in comb:
             size += 1
-            res.add(np.linalg.norm(pair[0] - pair[1]))
+            if np.linalg.norm(pair[0] - pair[1]):
+                res.add(np.linalg.norm(pair[0] - pair[1]))
         return len(res) == size
 
     def search_point(self):
