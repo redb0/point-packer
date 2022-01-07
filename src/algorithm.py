@@ -1,6 +1,8 @@
 import random
 from operator import attrgetter
 
+import numpy as np
+
 from figure import Figure
 from circle import Circle
 from visualization import vizualizate
@@ -30,11 +32,19 @@ class GeneticAlgorithm:
         self.initialization()
         for _ in range(self.max_iter):
             self.selection()
-            self.crossing()
+            child = self.crossing()
+            # проверяем уникальность расстояний
+            not_success_child = [agent for agent in child if agent.check_distance()]
+            success_child = [agent for agent in child if not agent.check_distance()]
+            mutated = self.mutation(not_success_child)
+            self.population = list(self.population) + list(success_child) + mutated
+            self.population = [agent for agent in self.population if not agent.check_distance()]
+            self.circles = self.get_circles()
             if self.draw:
                 for circle in self.circles[:2]:
                     vizualizate(circle.figure.points, circle.center, circle.radius)
-        print(f"Минимальная площадь - {self.circles[0].area}")
+        if self.circles:
+            return self.circles[0]
 
     def selection(self):
         # выбираем самых перспективных агентов
@@ -60,19 +70,41 @@ class GeneticAlgorithm:
                 indexes[i][1] = random.randint(0, count - 1)
         # выбираем сколько генов (точек) будем менять
         num_genes = self.num_points // 2
-        # какие точки меняем
+        # до какой точки меняем
         right = random.randint(1, self.num_points - num_genes)
         # скрещиваем выбранные пары
         child = []
-        parents = list(self.population)
         for idx in indexes:
             parent1 = list(self.population[idx[0]].points)
             parent2 = list(self.population[idx[1]].points)
             child.extend([parent1[:right] + parent2[right:],
                          parent2[:right] + parent1[right:]])
-        self.population = [Figure(self.num_points, points=el) for el in child]
-        # проверяем уникальность расстояний, удаляем неподходящие
-        # в планах делать над ними мутацию, уменьшать координаты
-        self.population = [agent for agent in self.population if agent.check_distance()]
-        self.population = parents + self.population
-        self.circles = self.get_circles()
+        child = [Figure(self.num_points, points=el) for el in child]
+        return child
+
+    def mutation(self, child):
+        circles = [Circle(agent) for agent in child]
+        mutated = []
+        max_iter = 5
+        for circle in circles:
+            result = circle.figure.check_distance()
+            iterations = 5
+            while iterations and result:
+                for i, point in enumerate(circle.figure.points):
+                    if all(point == result[0][0]):
+                        idx = i
+                idx = 0
+                point = circle.figure.points[idx]
+                x, y = abs(point - circle.center)
+                if x > y:
+                    point[0] += 1 if point[0] < circle.center[0] else -1
+                else:
+                    point[1] += 1 if point[1] < circle.center[1] else -1
+                result = circle.figure.check_distance()
+                iterations -= 1
+            if not result:
+                mutated.append(circle.figure)
+        return mutated
+
+
+
