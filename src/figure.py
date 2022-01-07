@@ -30,8 +30,8 @@ class Figure:
 
     def generate(self):
         """ Генерирует точки по заданному методу """
-        flag = False
-        while not flag:
+        flag = True
+        while flag:
             self.points = self.random_generate()
             flag = self.check_distance()
 
@@ -39,7 +39,7 @@ class Figure:
         """ Генерация точек в рандомном месте в заданном интервале
         :return: массив точек
         """
-        right_border = sum([1, self.num_points + 1])
+        right_border = sum([1, self.num_points * 2])
         x = np.random.randint(0, right_border, self.num_points)
         y = np.random.randint(0, right_border, self.num_points)
         return np.array(list(zip(x, y)))
@@ -50,14 +50,18 @@ class Figure:
         :return: True в случае выполнения условия
                  False в противном случае
         """
-        res = set()
+        distances = set()
         comb = itertools.combinations(self.points, 2)
-        size = 0
+        pairs = []
         for pair in comb:
-            size += 1
-            if np.linalg.norm(pair[0] - pair[1]):
-                res.add(np.linalg.norm(pair[0] - pair[1]))
-        return len(res) == size
+            distance = np.linalg.norm(pair[0] - pair[1])
+            if distance:
+                if distance in distances:
+                    pairs.append(pair)
+                distances.add(distance)
+        if not pairs:
+            return None
+        return pairs
 
     def search_point(self):
         """ Поиск двух наиболее удаленных друг от друга точек
