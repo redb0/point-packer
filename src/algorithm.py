@@ -2,6 +2,7 @@ import random
 
 from copy import deepcopy
 from operator import attrgetter, itemgetter
+from itertools import product
 
 import numpy as np
 
@@ -108,6 +109,7 @@ class GeneticAlgorithm:
     def mutation(self, child):
         circles = [Circle(agent) for agent in child]
         mutated = []
+        unmutated = []
         for circle in circles:
             iterations = 5
             while iterations:
@@ -124,6 +126,35 @@ class GeneticAlgorithm:
                 if not result:
                     mutated.append(circle.figure)
                     break
+                elif not iterations:
+                    unmutated.append(circle.figure)
+        # мутация для немутировавших
+        circles = [Circle(agent) for agent in unmutated]
+        for circle in circles:
+            x = int(circle.center[0] - circle.radius)
+            y = int(circle.center[1] - circle.radius)
+            diameter = int(circle.radius * 2)
+            # все возможные точки внутри круга
+            all_points = list(product(list(range(x, x + diameter)),
+                                      list(range(y, y + diameter))))
+            # удаляем те, которые уже заняты чтобы избежать наложения
+            new_all_points = []
+            for point in all_points:
+                if not any([all(point == p) for p in circle.figure.points]):
+                    new_all_points.append(point)
+            all_points = deepcopy(new_all_points)
+            #all_points = [point for point in all_points if not point in circle.figure.points]
+            # ищем первую подходящую точку
+            old_point = circle.figure.check_distance()[0][0]
+            idx = 0
+            for i, point in enumerate(circle.figure.points):
+                if all(point == old_point):
+                    idx = i
+            for point in all_points:
+                circle.figure.points[idx] = np.array(point)
+                res = circle.figure.check_distance()
+                if not res:
+                    mutated.append(circle.figure)
         mutated = [agent for agent in mutated if not agent.check_distance()]
         circles = [Circle(agent) for agent in mutated]
         for circle in circles:
