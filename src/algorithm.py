@@ -1,6 +1,7 @@
 import random
 
 from copy import deepcopy
+from collections import Counter
 from operator import attrgetter, itemgetter
 from itertools import product
 
@@ -49,6 +50,12 @@ class GeneticAlgorithm:
                                if not circle.figure.check_distance()]
             self.circles = self.get_circles()
             if self.circles:
+                count = 0
+                for j in range(1, 11):
+                    if self.circles[j].area == self.circles[j - 1].area:
+                        count += 1
+                if count >= 10:
+                    self.permutation()
                 if self.draw:
                     vizualizate(self.circles[0].figure.points,
                                 self.circles[0].center,
@@ -143,7 +150,6 @@ class GeneticAlgorithm:
                 if not any([all(point == p) for p in circle.figure.points]):
                     new_all_points.append(point)
             all_points = deepcopy(new_all_points)
-            #all_points = [point for point in all_points if not point in circle.figure.points]
             # ищем первую подходящую точку
             old_point = circle.figure.check_distance()[0][0]
             idx = 0
@@ -163,3 +169,37 @@ class GeneticAlgorithm:
                 flag = circle.check_points()
         mutated = [circle.figure for circle in circles if not circle.figure.check_distance()]
         return mutated
+
+    def permutation(self):
+        count = 0
+        circles = []
+        for i in range(1, len(self.circles)):
+            if not self.circles[i].area == self.circles[i - 1].area:
+                break
+            count += 1
+        circles.append(self.circles[0])
+        for i in range(count - 1):
+            x = int(circles[0].center[0] - circles[0].radius)
+            y = int(circles[0].center[1] - circles[0].radius)
+            diameter = int(circles[0].radius * 2)
+            # все возможные точки внутри круга
+            all_points = list(product(list(range(x, x + diameter)),
+                                      list(range(y, y + diameter))))
+            flag = True
+            while flag:
+                points_idx = np.random.choice(range(len(all_points)), self.num_points)
+                points = np.array([list(all_points[i]) for i in points_idx])
+                figure = Figure(self.num_points, points)
+                flag = figure.check_distance()
+            circles.append(Circle(figure))
+        circles = [circle for circle in circles if circle.area < circles[0].area]
+        agents = [circle.figure for circle in circles]
+        self.population = list(self.population[count - 2:]) + agents
+        self.circles = self.get_circles()
+        for circle in self.circles:
+            flag = False
+            while not flag:
+                flag = circle.check_points()
+        self.population = [circle.figure for circle in self.circles
+                           if not circle.figure.check_distance()]
+        self.circles = self.get_circles()
