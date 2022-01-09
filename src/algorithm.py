@@ -42,6 +42,7 @@ class GeneticAlgorithm:
             self.population = list(self.population) + child + mutated
             self.population = [agent for agent in self.population if not agent.check_distance()]
             self.circles = self.get_circles()
+            self.permutation()
             for circle in self.circles:
                 flag = False
                 while not flag:
@@ -50,12 +51,6 @@ class GeneticAlgorithm:
                                if not circle.figure.check_distance()]
             self.circles = self.get_circles()
             if self.circles:
-                count = 0
-                for j in range(1, 11):
-                    if self.circles[j].area == self.circles[j - 1].area:
-                        count += 1
-                if count >= 10:
-                    self.permutation()
                 if self.draw:
                     vizualizate(self.circles[0].figure.points,
                                 self.circles[0].center,
@@ -94,23 +89,15 @@ class GeneticAlgorithm:
         # выбираем сколько генов (точек) будем менять
         num_genes = self.num_points // 2
         # до какой точки меняем
-        right = random.randint(1, self.num_points - num_genes)
+        border = random.randint(1, self.num_points - num_genes)
         # скрещиваем выбранные пары
         child = []
         for idx in indexes:
             parent1 = deepcopy(list(self.population[idx[0]].points))
             parent2 = deepcopy(list(self.population[idx[1]].points))
-            child.extend([parent1[:right] + parent2[right:],
-                          parent2[:right] + parent1[right:]])
+            child.extend([parent1[:border] + parent2[border:],
+                          parent2[:border] + parent1[border:]])
         child = [Figure(self.num_points, points=el) for el in child]
-        circles = [Circle(agent) for agent in child]
-        # проверяем все ли точки лежат в окружности
-        for circle in circles:
-            flag = False
-            while not flag:
-                flag = circle.check_points()
-        # после перестроения точек снова проверяем уникальность расстояний
-        child = [circle.figure for circle in circles if not circle.figure.check_distance()]
         return child
 
     def mutation(self, child):
@@ -119,6 +106,7 @@ class GeneticAlgorithm:
         unmutated = []
         for circle in circles:
             iterations = 5
+            old_figure = [deepcopy(circle.figure)]
             while iterations:
                 iterations -= 1
                 points = list([(np.linalg.norm(point - circle.center), point)
@@ -134,7 +122,7 @@ class GeneticAlgorithm:
                     mutated.append(circle.figure)
                     break
                 elif not iterations:
-                    unmutated.append(circle.figure)
+                    unmutated.append(old_figure[0])
         # мутация для немутировавших
         circles = [Circle(agent) for agent in unmutated]
         for circle in circles:
@@ -145,61 +133,36 @@ class GeneticAlgorithm:
             all_points = list(product(list(range(x, x + diameter)),
                                       list(range(y, y + diameter))))
             # удаляем те, которые уже заняты чтобы избежать наложения
-            new_all_points = []
-            for point in all_points:
-                if not any([all(point == p) for p in circle.figure.points]):
-                    new_all_points.append(point)
-            all_points = deepcopy(new_all_points)
-            # ищем первую подходящую точку
-            old_point = circle.figure.check_distance()[0][0]
-            idx = 0
-            for i, point in enumerate(circle.figure.points):
-                if all(point == old_point):
-                    idx = i
+            all_points = [point for point in all_points
+                          if not any([all(point == p) for p in circle.figure.points])]
+            idx = random.randint(0, self.num_points - 1)
             for point in all_points:
                 circle.figure.points[idx] = np.array(point)
                 res = circle.figure.check_distance()
                 if not res:
                     mutated.append(circle.figure)
-        mutated = [agent for agent in mutated if not agent.check_distance()]
-        circles = [Circle(agent) for agent in mutated]
-        for circle in circles:
-            flag = False
-            while not flag:
-                flag = circle.check_points()
-        mutated = [circle.figure for circle in circles if not circle.figure.check_distance()]
         return mutated
 
     def permutation(self):
         count = 0
-        circles = []
-        for i in range(1, len(self.circles)):
-            if not self.circles[i].area == self.circles[i - 1].area:
-                break
-            count += 1
-        circles.append(self.circles[0])
-        for i in range(count - 1):
-            x = int(circles[0].center[0] - circles[0].radius)
-            y = int(circles[0].center[1] - circles[0].radius)
-            diameter = int(circles[0].radius * 2)
-            # все возможные точки внутри круга
-            all_points = list(product(list(range(x, x + diameter)),
-                                      list(range(y, y + diameter))))
+        circles = [deepcopy(self.circles[0])]
+        x = int(circles[0].center[0] - circles[0].radius)
+        y = int(circles[0].center[1] - circles[0].radius)
+        diameter = int(circles[0].radius * 2)
+        # все возможные точки внутри круга
+        all_points = list(product(list(range(x, x + diameter)),
+                                  list(range(y, y + diameter))))
+        for i in range(len(self.circles)):
             flag = True
-            while flag:
+            iterations = len(all_points)
+            while flag and iterations:
                 points_idx = np.random.choice(range(len(all_points)), self.num_points)
                 points = np.array([list(all_points[i]) for i in points_idx])
                 figure = Figure(self.num_points, points)
                 flag = figure.check_distance()
+                iterations -= 1
             circles.append(Circle(figure))
         circles = [circle for circle in circles if circle.area < circles[0].area]
         agents = [circle.figure for circle in circles]
-        self.population = list(self.population[count - 2:]) + agents
-        self.circles = self.get_circles()
-        for circle in self.circles:
-            flag = False
-            while not flag:
-                flag = circle.check_points()
-        self.population = [circle.figure for circle in self.circles
-                           if not circle.figure.check_distance()]
+        self.population = list(self.population) + agents
         self.circles = self.get_circles()
